@@ -67,14 +67,14 @@ namespace CaptchaDemo.Controllers
                 {
                     g.DrawString(captchaText, font, Brushes.Black, new PointF(10, 10));
                 }
-
+                 //Add random pixels
                 for (int i = 0; i < 100; i++)
                 {
                     int x = random.Next(0, bitmap.Width);
                     int y = random.Next(0, bitmap.Height);
                     bitmap.SetPixel(x, y, Color.Gray);
                 }
-
+                  // Adds random lines
                 for (int i = 0; i < 10; i++)
                 {
                     int x1 = random.Next(0, bitmap.Width);
@@ -86,14 +86,14 @@ namespace CaptchaDemo.Controllers
             }
             return bitmap;
         }
-
+        // Returns the CAPTCHA image as base64
         private string GetCaptchaImage()
         {
-            string captchaText = GenerateRandomText(6);
-            string hashedCaptcha = ComputeSha256Hash(captchaText);
-            HttpContext.Session.SetString("CaptchaHash", hashedCaptcha);
+            string captchaText = GenerateRandomText(6);// Generates random CAPTCHA text
+            string hashedCaptcha = ComputeSha256Hash(captchaText);// Hashes the text with SHA256
+            HttpContext.Session.SetString("CaptchaHash", hashedCaptcha);// Stores the hashed text in the session
 
-            // CAPTCHA oluşturulma zamanını sakla
+            //Stores the CAPTCHA creation time
             HttpContext.Session.SetString("CaptchaTimestamp", DateTime.UtcNow.ToString("o"));
 
             using (var ms = new MemoryStream())

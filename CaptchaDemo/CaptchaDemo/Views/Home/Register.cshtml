@@ -1,0 +1,166 @@
+﻿@model dynamic
+
+@{
+    ViewData["Title"] = "Kayıt Sayfası";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            text-align: left;
+            color: #666;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+            button:hover {
+                background-color: #45a049;
+            }
+
+        .captcha {
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        .link {
+            margin-top: 20px;
+            color: #0066cc;
+        }
+
+        #captchaTimer {
+            font-size: 14px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kayıt Ol</h1>
+        <form asp-action="VerifyCaptcha" method="post">
+            <input type="hidden" name="action" value="Register" />
+            <div>
+                <label for="fullName">İsim Soyisim:</label>
+                <input type="text" name="fullName" id="fullName" required />
+            </div>
+            <div>
+                <label for="username">Kullanıcı Adı:</label>
+                <input type="text" name="username" id="username" required />
+            </div>
+            <div>
+                <label for="phone">Telefon Numarası:</label>
+                <input type="text" name="phone" id="phone" required />
+            </div>
+            <div>
+                <label for="password">Şifre:</label>
+                <input type="password" name="password" id="password" required />
+            </div>
+            <div class="captcha">
+                <img id="captchaImage" src="@ViewBag.CaptchaImage" alt="CAPTCHA Görseli" />
+            </div>
+            <div>
+                <input type="text" name="userInput" placeholder="CAPTCHA" required />
+            </div>
+            <div>
+                <button type="submit">Kayıt Ol</button>
+            </div>
+            <p id="captchaTimer">CAPTCHA süresi: 30 saniye</p>
+        </form>
+
+        @if (ViewBag.Message != null)
+        {
+            <p class="message" style="color:@ViewBag.MessageColor">@ViewBag.Message</p>
+        }
+
+        <p class="link">
+            Zaten hesabınız var mı? <a href="/Home/Index">Giriş Yap</a>
+        </p>
+    </div>
+
+    <script>
+        const captchaExpirationSeconds = 30;
+        let remainingTime = captchaExpirationSeconds;
+        let timerInterval;
+
+        function updateTimer() {
+            const timerElement = document.getElementById('captchaTimer');
+            timerElement.textContent = `CAPTCHA süresi: ${remainingTime} saniye`;
+
+            if (remainingTime <= 0) {
+                clearInterval(timerInterval);
+                refreshCaptcha();
+            } else {
+                remainingTime--;
+            }
+        }
+
+        function refreshCaptcha() {
+            fetch('/Home/GenerateNewCaptcha')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('captchaImage').src = data.captchaImageUrl;
+                    // Süreyi sıfırla ve geri sayımı yeniden başlat
+                    remainingTime = captchaExpirationSeconds;
+                    updateTimer(); // Geri sayımı güncelle
+                    timerInterval = setInterval(updateTimer, 1000);
+                });
+        }
+
+        // Başlangıçta geri sayımı başlat
+        timerInterval = setInterval(updateTimer, 1000);
+    </script>
+</body>
+</html>
